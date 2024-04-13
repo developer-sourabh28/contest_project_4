@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NASA Picture of the Day</title>
+  <style>
+    body {
+  font-family: Arial, sans-serif;
+  background-color: black;
+  color: white;
+}
+
+#current-image-container {
+  margin-top: 20px;
+  background-color: black;
+  color: white;
+}
+
+#search-form{
+    background-color: white;
+    color: black;
+}
+#search-history {
+  list-style-type: none;
+  padding: 0;
+}
+
+#search-history li {
+  cursor: pointer;
+  margin-bottom: 5px;
+}
+
+#search-history li:hover {
+  text-decoration: underline;
+}
+  </style>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>NASA Picture of the Day</h1>
+    <section id="current-image-container"></section>
+  <form id="search-form">
+    
+    <label for="search-input">Select Date:</label>
+    <input type="date" id="search-input" required>
+    <button type="submit">Search</button>
+  </form>
+  
+ 
+    <!-- Current image will be displayed here -->
+  </section>
+
+  <h2>Search History</h2>
+  <ul id="search-history">
+    <!-- Past searches will be displayed here -->
+  </ul>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', getCurrentImageOfTheDay);
+
+document.getElementById('search-form').addEventListener('submit', function(event) {
+  event.preventDefault();
+  getImageOfTheDay();
+});
+
+function getCurrentImageOfTheDay() {
+  fetchImageData(getFormattedDate(), displayImage);
+}
+
+function getImageOfTheDay() {
+  const date = document.getElementById('search-input').value;
+  fetchImageData(date, displayImage);
+  saveSearch(date);
+}
+
+function fetchImageData(date, callback) {
+  fetch(`https://api.nasa.gov/planetary/apod?api_key=STTbT8cSo9C7rBfIUPbsqtbnwdWCceEeVfmVVngu&date=${date}`)
+    .then(response => response.json())
+    .then(data => callback(data))
+    .catch(error => console.error('Error fetching data:', error));
+}
+
+function displayImage(data) {
+  const currentImageContainer = document.getElementById('current-image-container');
+  currentImageContainer.innerHTML = `
+    <h2>${data.title}</h2>
+    <img src="${data.url}" alt="${data.title}">
+    <p>${data.explanation}</p>
+  `;
+}
+
+function saveSearch(date) {
+  let searches = JSON.parse(localStorage.getItem('searches')) || [];
+  searches.push(date);
+  localStorage.setItem('searches', JSON.stringify(searches));
+  addSearchToHistory();
+}
+
+function addSearchToHistory() {
+  const searchHistory = document.getElementById('search-history');
+  searchHistory.innerHTML = '';
+  let searches = JSON.parse(localStorage.getItem('searches')) || [];
+  searches.forEach(search => {
+    const listItem = document.createElement('li');
+    listItem.textContent = search;
+    listItem.addEventListener('click', function() {
+      fetchImageData(search, displayImage);
+    });
+    searchHistory.appendChild(listItem);
+  });
+}
+
+function getFormattedDate() {
+  const today = new Date();
+  const year = today.getFullYear();
+  let month = today.getMonth() + 1;
+  let day = today.getDate();
+
+  if (month < 10) {
+    month = '0' + month;
+  }
+  if (day < 10) {
+    day = '0' + day;
+  }
+
+  return `${year}-${month}-${day}`;
+}
+
+  </script>
+</body>
+</html>
+
+
+
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=>, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body{
+            background-color: black;
+        }
+    #current-image-container{
+        background-color: black;
+        color: white;
+        border: 7px solid white;
+        width: 100%;
+        height: 800px;
+    }
+    #searches{
+        background-color: white;
+    }
+
+    </style>
+</head>
+<body>
+    <form id="search-form">
+        
+        <section id="current-image-container"><h1 style="color: white; margin-left: 10px;">NASA Picture of the Day</h1></section>
+        <div id="searches">
+        <input id="search-input" type="date" placeholder="Select date">
+        <button type="submit" style="display: inline;">Search</button>
+        <ul id="search-history">Search</ul>
+    </div>
+    </form>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', getCurrentImageOfTheDay);
+
+      function getCurrentImageOfTheDay(){
+        const currentDate = new Date().toISOString().split("T")[0];
+        getImageOfTheDay(currentDate);
+        
+      }
+
+      function getImageOfTheDay(date){
+        const apiKey = 'STTbT8cSo9C7rBfIUPbsqtbnwdWCceEeVfmVVngu';
+        const apiUrl = `https://api.nasa.gov/planetary/apod?date=${date}&api_key=${apiKey}`;
+
+        fetch(apiUrl)
+        .then(response => response.json())
+        .then(data =>{
+            displayImage(data);
+            saveSearch(date);
+        })
+        .catch(error => console.log('Error fetching data:', error));
+      }
+
+      function displayImage(data){
+        const currentImageContainer = document.getElementById('current-image-container');
+        currentImageContainer.innerHTML = `
+        <img src="${data.url}" alt="${data.title}">
+        <p>${data.title}</p>
+        <p>${data.date}</p>
+        <p>${data.explanation}</p>
+        `;
+      }
+        function saveSearch(date){
+            let searches = JSON.parse(localStorage.getItem('searches')) || [];
+            searches.push(date);
+            localStorage.setItem('searches', JSON.stringify(searches));
+            addSearchToHistory();
+        }
+
+        function addSearchToHistory() {
+    const searchHistoryList = document.getElementById('search-history');
+    searchHistoryList.innerHTML = '';
+
+    let searches = JSON.parse(localStorage.getItem('searches')) || [];
+    searches.forEach(date => {
+        const listItem = document.createElement('li');
+        listItem.textContent = date;
+        listItem.addEventListener('click', () => {
+            getImageOfTheDay(date);
+        });
+        searchHistoryList.appendChild(listItem);
+    });
+
+      }
+    
+    </script>
+</body>
+</html> -->
